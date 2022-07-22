@@ -1,0 +1,24 @@
+<div class="toast-container position-fixed top-0 end-0 p-3">
+    <div id="error" class="toast" role="alert" style="background-color: rgb(232, 159, 159);">
+        <div class="toast-header" style=" color: white;background-color: rgb(161, 63, 63);">
+            <strong class="me-auto">
+                <%= error.message %>
+            </strong>
+            <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
+        </div>
+        <div class="toast-body">
+            <%= error.info %>
+        </div>
+    </div>
+</div>
+<div style="display: none;" id="condition">
+    <%= error.status %>
+</div>
+<script>
+    const errorPopup = document.getElementById('error')
+    const condition = document.getElementById("condition").innerHTML.trim();
+    if (condition == "true") {
+        const toast = new bootstrap.Toast(errorPopup)
+        toast.show()
+    }
+</script>
