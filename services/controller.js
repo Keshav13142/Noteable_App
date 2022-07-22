@@ -4,6 +4,7 @@ const { User, Note } = require("../models/models");
 
 const register = async (req, res) => {
   const { email, password, name } = req.body;
+  console.log(email);
   if (!email || !password || !name) {
     res.render("register", {
       title: "Register",
@@ -15,7 +16,8 @@ const register = async (req, res) => {
       },
     });
   } else {
-    if (await User.find({ email })) {
+    if (await User.findOne({ email })) {
+      console.log("alsdnasldkj");
       res.render("register", {
         title: "Register",
         loggedIn: false,
@@ -32,12 +34,8 @@ const register = async (req, res) => {
         email: email,
         password: hashPass,
       });
-      res.render("notes", {
-        name: user.name,
-        title: "My notes",
-        loggedIn: true,
-        error: {},
-      });
+      req.session.user = user;
+      res.redirect("/notes");
     }
   }
 };
@@ -75,11 +73,13 @@ const login = async (req, res) => {
 const getNotes = async (req, res) => {
   const user = req.session.user;
   if (user) {
+    const notes = await Note.find({ user_id: req.session.user._id });
     res.render("notes", {
       name: user.name,
       title: "My notes",
       loggedIn: true,
       error: {},
+      notes: notes,
     });
   } else {
     res.redirect("login");
@@ -90,4 +90,31 @@ const logout = (req, res) => {
   req.session.user = null;
   res.redirect("login");
 };
-module.exports = { register, login, getNotes, logout };
+
+const saveNote = async (req, res) => {
+  const { title, content } = req.body;
+  if (!req.session.user) {
+    res.redirect("/logout");
+  } else {
+    const note = await Note.create({
+      user_id: req.session.user._id,
+      title: title,
+      content: content,
+    });
+    res.redirect("/notes");
+  }
+};
+
+const deleteNote = async (req, res) => {
+  if (!req.session.user) {
+    res.redirect("/logout");
+  } else {
+    // console.log(req.body);
+    if (req.session.user._id != req.body.uid) res.redirect("/logout");
+    else {
+      await Note.deleteOne({ _id: req.body.id });
+      res.redirect("/notes");
+    }
+  }
+};
+module.exports = { register, login, getNotes, logout, saveNote, deleteNote };

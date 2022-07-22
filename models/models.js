@@ -24,12 +24,15 @@ const User = mongoose.model("User", userSchema);
 
 const noteSchema = mongoose.Schema(
   {
-    user: {
-      type: mongoose.Schema.Types.ObjectId,
+    user_id: {
+      type: String,
       required: true,
-      ref: "User",
     },
-    note: {
+    title: {
+      type: String,
+      required: [true, "please add a text value"],
+    },
+    content: {
       type: String,
       required: [true, "please add a text value"],
     },

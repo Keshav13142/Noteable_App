@@ -10,7 +10,14 @@ app.use(express.static("public"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-const { login, register, getNotes, logout } = require("./services/controller");
+const {
+  login,
+  register,
+  getNotes,
+  logout,
+  saveNote,
+  deleteNote,
+} = require("./services/controller");
 mongoose.connect(process.env.MONGO_URL);
 
 const oneDay = 1000 * 60 * 60 * 24;
@@ -50,8 +57,9 @@ app.get("/", (_, res) => {
 
 app.get("/logout", logout);
 
-app.get("/notes", getNotes);
+app.route("/notes").get(getNotes).post(saveNote);
 
+app.post("/delete", deleteNote);
 app.listen(3000, () => {
   console.log(`Listening on port ${port}`);
 });
