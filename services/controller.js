@@ -4,7 +4,6 @@ const { User, Note } = require("../models/models");
 
 const register = async (req, res) => {
   const { email, password, name } = req.body;
-  console.log(email);
   if (!email || !password || !name) {
     res.render("register", {
       title: "Register",
@@ -17,7 +16,6 @@ const register = async (req, res) => {
     });
   } else {
     if (await User.findOne({ email })) {
-      console.log("alsdnasldkj");
       res.render("register", {
         title: "Register",
         loggedIn: false,
@@ -98,8 +96,8 @@ const saveNote = async (req, res) => {
   } else {
     const note = await Note.create({
       user_id: req.session.user._id,
-      title: title,
-      content: content,
+      title: title.trim(),
+      content: content.trim(),
     });
     res.redirect("/notes");
   }
@@ -109,7 +107,6 @@ const deleteNote = async (req, res) => {
   if (!req.session.user) {
     res.redirect("/logout");
   } else {
-    // console.log(req.body);
     if (req.session.user._id != req.body.uid) res.redirect("/logout");
     else {
       await Note.deleteOne({ _id: req.body.id });
