@@ -1,10 +1,14 @@
+//Bcrypt for salting and hashing the password
 const bcrypt = require("bcrypt");
-const e = require("express");
-const { User, Note } = require("../models/models");
+const { User } = require("../models/models");
 
 const register = async (req, res) => {
+  //Destructuring the fields from the request's body
   const { email, password, name } = req.body;
+
+  //Check for any empty fields
   if (!email || !password || !name) {
+    //If empty then re-render the page with error message
     res.render("register", {
       title: "Register",
       loggedIn: false,
@@ -14,8 +18,11 @@ const register = async (req, res) => {
         info: "Please enter all the required details",
       },
     });
-  } else {
+  }
+  //Else check if the user's email already exists
+  else {
     if (await User.findOne({ email })) {
+      //re-render the page with error message
       res.render("register", {
         title: "Register",
         loggedIn: false,
@@ -25,22 +32,31 @@ const register = async (req, res) => {
           info: "Try logging in if you already have an account",
         },
       });
-    } else {
+    }
+    //If everything is fine then hash the password and save the user in database
+    else {
       const hashPass = await bcrypt.hash(password, 10);
       const user = await User.create({
         name: name,
         email: email,
         password: hashPass,
       });
-      req.session.user = user;
+      //Setting the session variable
+      req.session.user = { name: user.name, _id: user._id };
+
+      //After saving the user, then redirect to the notes page
       res.redirect("/notes");
     }
   }
 };
 
 const login = async (req, res) => {
+  //Destructuring the fields from the request's body
   const { email, password } = req.body;
+
+  //Check for any empty fields
   if (!email || !password) {
+    //If empty then re-render the page with error message
     res.render("login", {
       title: "Login",
       loggedIn: false,
@@ -50,12 +66,20 @@ const login = async (req, res) => {
         info: "Please check you email and password!",
       },
     });
-  } else {
+  }
+  //Else proceed to check the credentials
+  else {
+    //Get the user's info from the database using the email
     const user = await User.findOne({ email });
+
+    //Compare with the hashed password using bcrypt...
     if (user && (await bcrypt.compare(password, user.password))) {
+      //Set the session variable and redirect to '/notes'
       req.session.user = { name: user.name, _id: user._id };
       res.redirect("notes");
-    } else
+    }
+    //If the passwords don't match the re-render the login page with error
+    else
       res.render("login", {
         title: "Login",
         loggedIn: false,
@@ -68,53 +92,11 @@ const login = async (req, res) => {
   }
 };
 
-const getNotes = async (req, res) => {
-  const user = req.session.user;
-  if (user) {
-    const notes = await Note.find({ user_id: req.session.user._id });
-    res.render("notes", {
-      name: user.name,
-      title: "My notes",
-      loggedIn: true,
-      error: {},
-      notes: notes,
-    });
-  } else {
-    res.redirect("login");
-  }
-};
-
 const logout = (req, res) => {
+  //End the current session by setting the variable to null then redirect to '/login'
   req.session.user = null;
   res.redirect("login");
 };
 
-const saveNote = async (req, res) => {
-  var { title, content } = req.body;
-  if (!req.session.user) {
-    res.redirect("/logout");
-  } else {
-    if (title.trim().length == 0) {
-      title = "Untitled";
-    }
-    const note = await Note.create({
-      user_id: req.session.user._id,
-      title: title.trim(),
-      content: content.trim(),
-    });
-    res.redirect("/notes");
-  }
-};
-
-const deleteNote = async (req, res) => {
-  if (!req.session.user) {
-    res.redirect("/logout");
-  } else {
-    if (req.session.user._id != req.body.uid) res.redirect("/logout");
-    else {
-      await Note.deleteOne({ _id: req.body.id });
-      res.redirect("/notes");
-    }
-  }
-};
-module.exports = { register, login, getNotes, logout, saveNote, deleteNote };
+//Export the functions
+module.exports = { register, login, logout };

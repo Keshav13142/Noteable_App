@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 
+//Defining the User Schema using mongoose
 const userSchema = mongoose.Schema(
   {
     name: {
@@ -17,11 +18,14 @@ const userSchema = mongoose.Schema(
     },
   },
   {
+    //Telling mongoose to automatically generate timestamps while saving a record
     timestamps: true,
   }
 );
+//Create the User model
 const User = mongoose.model("User", userSchema);
 
+//Defining the Notes Schema using mongoose
 const noteSchema = mongoose.Schema(
   {
     user_id: {
@@ -38,9 +42,12 @@ const noteSchema = mongoose.Schema(
     },
   },
   {
+    //Telling mongoose to automatically generate timestamps while saving a record
     timestamps: true,
   }
 );
-
+//Create the Note model
 const Note = mongoose.model("Note", noteSchema);
+
+//Exporting both the models
 module.exports = { User, Note };
