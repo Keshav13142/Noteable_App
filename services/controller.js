@@ -90,10 +90,13 @@ const logout = (req, res) => {
 };
 
 const saveNote = async (req, res) => {
-  const { title, content } = req.body;
+  var { title, content } = req.body;
   if (!req.session.user) {
     res.redirect("/logout");
   } else {
+    if (title.trim().length == 0) {
+      title = "Untitled";
+    }
     const note = await Note.create({
       user_id: req.session.user._id,
       title: title.trim(),
